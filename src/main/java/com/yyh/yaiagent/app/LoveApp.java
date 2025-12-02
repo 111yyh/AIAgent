@@ -3,6 +3,8 @@ package com.yyh.yaiagent.app;
 import com.yyh.yaiagent.advisor.MyLoggerAdvisor;
 import com.yyh.yaiagent.advisor.ProhibitedWordAdvisor;
 import com.yyh.yaiagent.chatmemory.FileBasedChatMemory;
+import com.yyh.yaiagent.rag.LoveAppRagCustomAdvisorFactory;
+import com.yyh.yaiagent.rag.QueryRewriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -116,6 +118,12 @@ public class LoveApp {
     @Resource
     private VectorStore loveAppVectorStore;
 
+    @Resource
+    private VectorStore pgVectorVectorStore;
+
+    @Resource
+    private QueryRewriter queryRewriter;
+
     /**
      * 使用RAG知识库进行对话
      * @param message
@@ -123,11 +131,20 @@ public class LoveApp {
      * @return
      */
     public String doChatWithRag(String message, String chatId) {
+        String rewriterMsg = queryRewriter.doRewrite(message);
         ChatResponse chatResponse = chatClient.prompt()
-                .user(message)
+                // 使用改写后的查询
+                .user(rewriterMsg)
                 .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
                         .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                // 和内存VectorStore配合
                 .advisors(new QuestionAnswerAdvisor(loveAppVectorStore))
+                // 和PgVector 向量存储配合
+//                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
+                // 应用自定义的RAG检索增强服务（文档查询器+ 上下文增强器）
+//                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(
+//                        loveAppVectorStore, "单身"
+//                ))
                 .call()
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();
