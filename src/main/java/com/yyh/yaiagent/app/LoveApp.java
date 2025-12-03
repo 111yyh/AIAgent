@@ -14,6 +14,7 @@ import org.springframework.ai.chat.client.advisor.api.Advisor;
 import org.springframework.ai.chat.memory.ChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.tool.ToolCallback;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -50,8 +51,8 @@ public class LoveApp {
                 .defaultAdvisors(
                         new MessageChatMemoryAdvisor(chatMemory),
                         // 自定义日志 Advisor，可按需开启
-                        new MyLoggerAdvisor(),
-                        new ProhibitedWordAdvisor()
+                        new MyLoggerAdvisor()
+//                        new ProhibitedWordAdvisor()
 //                        new MyLoggerAdvisor(),
                         // 自定义推理增强 Advisor, 可按需开启
 //                        new ReReadingAdvisor()
@@ -170,5 +171,26 @@ public class LoveApp {
                 .chatResponse();
         String content = chatResponse.getResult().getOutput().getText();
         return content;
+    }
+
+    // AI 调用工具能力
+    @Resource
+    private ToolCallback[] allTools;
+
+    /**
+     * AI 报告功能 (支持调用工具)
+     * @param message 用户输入
+     * @param chatId 对话ID
+     * @return AI返回的文本信息
+     */
+    public String doChatWithTools(String message, String chatId) {
+        ChatResponse chatResponse = chatClient.prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                .tools(allTools)
+                .call()
+                .chatResponse();
+        return chatResponse.getResult().getOutput().getText();
     }
 }
