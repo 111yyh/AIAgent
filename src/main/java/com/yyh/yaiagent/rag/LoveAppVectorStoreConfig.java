@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * 恋爱大师向量数据库配置(基于内存的向量数据库 Bean)
  */
-@Configuration
+//@Configuration
 public class LoveAppVectorStoreConfig {
 
     @Resource
@@ -22,7 +22,7 @@ public class LoveAppVectorStoreConfig {
     @Resource
     private MyKeyWordEnricher myKeyWordEnricher;
 
-    @Bean
+//    @Bean
     VectorStore loveAppVectorStore(EmbeddingModel dashscopeEmbeddingModel) {
         SimpleVectorStore simpleVectorStore = SimpleVectorStore.builder(dashscopeEmbeddingModel).build();
         List<Document> documentList = loveAppDocumentLoader.loadDocuments();

@@ -81,11 +81,31 @@ class LoveAppTest {
 
         // 测试 PDF 生成
         testMessage("生成一份‘约会露营计划’PDF，包含餐厅预订、活动流程和礼物清单");
+
+        // 示例：调用工具发送七夕祝福邮件
+//        testMessage("发送邮件给 桑甜雨 的QQ邮箱（2539950155@qq.com），主题是爱你哟");
     }
 
     private void testMessage(String message) {
         String chatId = UUID.randomUUID().toString();
         String answer = loveApp.doChatWithTools(message, chatId);
+        Assertions.assertNotNull(answer);
+    }
+
+    @Test
+    void doChatWithMcp() {
+        String chatId = UUID.randomUUID().toString();
+        String message = "我的另一半在苏州工业园区，请你找到周边5公里内合适的约会地点";
+        String answer = loveApp.doChatWithMcp(message, chatId);
+        Assertions.assertNotNull(answer);
+    }
+
+    @Test
+    void doChatWithMcp_ImageSearch() {
+        // 测试图片搜索 MCP
+        String chatId = UUID.randomUUID().toString();
+        String message = "帮我搜索一下有关爱情的图片";
+        String answer =  loveApp.doChatWithMcp(message, chatId);
         Assertions.assertNotNull(answer);
     }
 
